@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <i class="bi bi-wallet2 mb-2" style="font-size: 2rem;"></i>
+            <h3>₹{{ "%.2f"|format(monthly_expenses|sum(attribute="total")) }}</h3>
+            <p>Total Expenses This Month</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #059669, #047857);">
+            <i class="bi bi-graph-up mb-2" style="font-size: 2rem;"></i>
+            <h3>{{ category_expenses|length }}</h3>
+            <p>Expense Categories</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #d97706, #b45309);">
+            <i class="bi bi-calendar mb-2" style="font-size: 2rem;"></i>
+            <h3>{{ recent_expenses|length }}</h3>
+            <p>Recent Transactions</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #7c3aed, #6d28d9);">
+            <i class="bi bi-piggy-bank mb-2" style="font-size: 2rem;"></i>
+            <h3>{{ budgets|length }}</h3>
+            <p>Active Budgets</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Monthly Expenses</h5>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="updateChart('line')">Line</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="updateChart('bar')">Bar</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyExpensesChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Expenses by Category</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryExpensesChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Expenses</h5>
+                <a href="{{ url_for('main.view_expenses') }}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for expense in recent_expenses %}
+                            <tr>
+                                <td>{{ expense.date.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <span class="badge bg-light text-dark">
+                                        <i class="bi bi-tag"></i> {{ expense.category.title() }}
+                                    </span>
+                                </td>
+                                <td class="expense-amount">₹{{ "%.2f"|format(expense.amount) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Budget Overview</h5>
+                <a href="{{ url_for('main.set_budget') }}" class="btn btn-sm btn-primary">Set Budget</a>
+            </div>
+            <div class="card-body">
+                {% for budget in budgets %}
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <h6 class="mb-0">
+                            <i class="bi bi-tag"></i> {{ budget.category.title() }}
+                        </h6>
+                        <span class="text-muted">
+                            ₹{{ "%.2f"|format(monthly_expenses|selectattr("category", "equalto", budget.category)|sum(attribute="total")) }}
+                            / ₹{{ "%.2f"|format(budget.amount) }}
+                        </span>
+                    </div>
+                    {% set percentage = (monthly_expenses|selectattr("category", "equalto", budget.category)|sum(attribute="total") / budget.amount * 100)|round|int %}
+                    <div class="progress">
+                        <div class="progress-bar {% if percentage > 100 %}bg-danger{% elif percentage > 80 %}bg-warning{% else %}bg-success{% endif %}"
+                             role="progressbar"
+                             style="width: {{ percentage if percentage <= 100 else 100 }}%"
+                             aria-valuenow="{{ percentage }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                            {{ percentage }}%
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    'use strict';
+    
+    var monthlyChart = null;
+    var chartColors = {
+        primary: '#7c3aed',
+        primaryLight: 'rgba(124, 58, 237, 0.1)',
+        secondary: '#8b5cf6',
+        success: '#059669',
+        warning: '#d97706',
+        violet: {
+            light: '#a78bfa',
+            dark: '#6d28d9'
+        }
+    };
+    
+    function createMonthlyChart(data, type) {
+        var ctx = document.getElementById('monthlyExpensesChart').getContext('2d');
+        
+        if (monthlyChart) {
+            monthlyChart.destroy();
+        }
+        
+        monthlyChart = new Chart(ctx, {
+            type: type || 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Monthly Expenses',
+                    data: data.data,
+                    borderColor: chartColors.primary,
+                    backgroundColor: type === 'bar' ? chartColors.primary : chartColors.primaryLight,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: chartColors.primaryLight
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value;
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: chartColors.primaryLight
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function createCategoryChart() {
+        var ctx = document.getElementById('categoryExpensesChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: [{% for expense in category_expenses %}'{{ expense.category.title() }}',{% endfor %}],
+                datasets: [{
+                    data: [{% for expense in category_expenses %}{{ expense.total }},{% endfor %}],
+                    backgroundColor: [
+                        chartColors.primary,
+                        chartColors.secondary,
+                        chartColors.success,
+                        chartColors.warning,
+                        chartColors.violet.light,
+                        chartColors.violet.dark
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                family: "'Inter', sans-serif",
+                                size: 12
+                            }
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    }
+    
+    function init() {
+        fetch('{{ url_for("main.expenses_data") }}')
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                createMonthlyChart(data);
+                createCategoryChart();
+            });
+    }
+    
+    window.updateChart = function(type) {
+        fetch('{{ url_for("main.expenses_data") }}')
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                createMonthlyChart(data, type);
+            });
+    };
+    
+    document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+{% endblock %} 

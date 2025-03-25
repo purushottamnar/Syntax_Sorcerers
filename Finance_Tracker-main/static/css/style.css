@@ -1,0 +1,199 @@
+:root {
+    --primary: #7c3aed;
+    --primary-light: rgba(124, 58, 237, 0.1);
+    --secondary: #8b5cf6;
+    --success: #059669;
+    --warning: #d97706;
+    --danger: #ef4444;
+    --violet-light: #a78bfa;
+    --violet-dark: #6d28d9;
+    --cream: #fef3c7;
+    --cream-light: #fffbeb;
+    --cream-dark: #fde68a;
+    --text-dark: #1f2937;
+    --text-light: #6b7280;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--cream-light);
+    color: var(--text-dark);
+}
+
+.navbar {
+    background: linear-gradient(135deg, var(--primary), var(--violet-dark));
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    color: white !important;
+    font-weight: 600;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: white !important;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+}
+
+.card {
+    background: white;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card {
+    background: linear-gradient(135deg, var(--primary), var(--violet-dark));
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--violet-dark);
+    border-color: var(--violet-dark);
+}
+
+.btn-outline-secondary {
+    color: var(--text-light);
+    border-color: var(--text-light);
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--primary-light);
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.form-control:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 0.25rem var(--primary-light);
+}
+
+.table {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: var(--cream);
+    color: var(--text-dark);
+    font-weight: 600;
+    border-bottom: none;
+}
+
+.table tbody tr:hover {
+    background-color: var(--cream-light);
+}
+
+.badge {
+    padding: 0.5em 0.75em;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.progress {
+    height: 0.75rem;
+    border-radius: 1rem;
+    background-color: var(--cream-light);
+}
+
+.progress-bar {
+    border-radius: 1rem;
+}
+
+.alert {
+    border: none;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.alert-success {
+    background-color: rgba(5, 150, 105, 0.1);
+    color: var(--success);
+}
+
+.alert-warning {
+    background-color: rgba(217, 119, 6, 0.1);
+    color: var(--warning);
+}
+
+.alert-danger {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--cream-light);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-light);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+.expense-amount {
+    font-weight: 600;
+    color: var(--danger);
+}
+
+.budget-amount {
+    font-weight: 600;
+    color: var(--success);
+}
+
+.stats-card h3 {
+    font-size: 2rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+.stats-card p {
+    margin: 0;
+    opacity: 0.9;
+} 
